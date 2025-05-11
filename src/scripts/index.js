@@ -1,6 +1,7 @@
 import { initialCards } from "./cards";
-// @todo: Темплейт карточки
-const cardTemplate = document.querySelector("#card-template").content;
+import { createCard } from "./components/card";
+import { openPopup, closePopup } from "./components/modal";
+
 // @todo: DOM узлы
 const placesList = document.querySelector(".places__list");
 
@@ -31,18 +32,6 @@ const cardUrlInput = newCardForm.querySelector(".popup__input_type_url");
 const popupImage = imagePopup.querySelector(".popup__image");
 const popupCaption = imagePopup.querySelector(".popup__caption");
 
-// Function to open popup
-function openPopup(popup) {
-  popup.classList.add("popup_is-opened");
-  document.addEventListener("keydown", closeByEscape);
-}
-
-// Function to close popup
-function closePopup(popup) {
-  popup.classList.remove("popup_is-opened");
-  document.removeEventListener("keydown", closeByEscape);
-}
-
 // Close popup by Escape key
 function closeByEscape(evt) {
   if (evt.key === "Escape") {
@@ -50,7 +39,7 @@ function closeByEscape(evt) {
     closePopup(openedPopup);
   }
 }
-
+document.addEventListener("keydown", closeByEscape);
 // Close popup by clicking on overlay
 popups.forEach((popup) => {
   popup.addEventListener("click", (evt) => {
@@ -59,7 +48,6 @@ popups.forEach((popup) => {
     }
   });
 });
-
 // Edit profile form handling
 editButton.addEventListener("click", () => {
   nameInput.value = profileTitle.textContent;
@@ -96,26 +84,6 @@ newCardForm.addEventListener("submit", (evt) => {
   closePopup(newCardPopup);
 });
 
-// @todo: Функция создания карточки
-function createCard(cardData, deleteCallback, likeCallback, imageCallback) {
-  const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
-  const cardImage = cardElement.querySelector(".card__image");
-  const cardTitle = cardElement.querySelector(".card__title");
-  const deleteButton = cardElement.querySelector(".card__delete-button");
-  const likeButton = cardElement.querySelector(".card__like-button");
-
-  cardImage.src = cardData.link;
-  cardImage.alt = cardData.name;
-  cardTitle.textContent = cardData.name;
-  // Слушатель удаления
-
-  deleteButton.addEventListener("click", () => deleteCallback(cardElement));
-  likeButton.addEventListener("click", likeCallback);
-  cardImage.addEventListener("click", () => imageCallback(cardData));
-
-  return cardElement;
-}
-
 // @todo: Функция удаления карточки
 function deleteCard(cardElement) {
   cardElement.remove();
@@ -139,7 +107,7 @@ document.querySelectorAll(".popup__close").forEach((button) => {
     closePopup(popup);
   });
 });
-
+console.log(initialCards);
 // Initial cards rendering
 initialCards.forEach((cardData) => {
   const cardElement = createCard(
