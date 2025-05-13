@@ -24,3 +24,8 @@ export function createCard(
 
   return cardElement;
 }
+
+// @todo: Функция удаления карточки
+export function deleteCard(cardElement) {
+  cardElement.remove();
+}

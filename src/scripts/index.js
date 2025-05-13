@@ -1,5 +1,6 @@
 import { initialCards } from "./cards";
 import { createCard } from "./components/card";
+import { deleteCard } from "./components/card";
 import { openPopup, closePopup } from "./components/modal";
 
 // @todo: DOM узлы
@@ -32,14 +33,6 @@ const cardUrlInput = newCardForm.querySelector(".popup__input_type_url");
 const popupImage = imagePopup.querySelector(".popup__image");
 const popupCaption = imagePopup.querySelector(".popup__caption");
 
-// Close popup by Escape key
-function closeByEscape(evt) {
-  if (evt.key === "Escape") {
-    const openedPopup = document.querySelector(".popup_is-opened");
-    closePopup(openedPopup);
-  }
-}
-document.addEventListener("keydown", closeByEscape);
 // Close popup by clicking on overlay
 popups.forEach((popup) => {
   popup.addEventListener("click", (evt) => {
@@ -62,7 +55,10 @@ editForm.addEventListener("submit", (evt) => {
   closePopup(editPopup);
 });
 
-// Add new card form handling
+// Add new card form handling Я посмотрел, как делается, когда обработчики выносятся
+// в отдельные именованные функции и используются при навешивании слушателей.
+// Но исправить код сейчас не решился- делаю первые шаги в js и боюсь ненароком поломать код.
+// Обязательно учту это в дальнейшем.
 addButton.addEventListener("click", () => {
   newCardForm.reset();
   openPopup(newCardPopup);
@@ -83,11 +79,6 @@ newCardForm.addEventListener("submit", (evt) => {
   placesList.prepend(cardElement);
   closePopup(newCardPopup);
 });
-
-// @todo: Функция удаления карточки
-function deleteCard(cardElement) {
-  cardElement.remove();
-}
 
 function likeCard(evt) {
   evt.target.classList.toggle("card__like-button_is-active");
