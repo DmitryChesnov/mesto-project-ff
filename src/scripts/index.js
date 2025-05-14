@@ -1,6 +1,5 @@
 import { initialCards } from "./cards";
-import { createCard } from "./components/card";
-import { deleteCard } from "./components/card";
+import { createCard, deleteCard, likeCard } from "./components/card";
 import { openPopup, closePopup } from "./components/modal";
 
 // @todo: DOM узлы
@@ -79,10 +78,6 @@ newCardForm.addEventListener("submit", (evt) => {
   placesList.prepend(cardElement);
   closePopup(newCardPopup);
 });
-
-function likeCard(evt) {
-  evt.target.classList.toggle("card__like-button_is-active");
-}
 
 function openImagePopup(cardData) {
   popupImage.src = cardData.link;

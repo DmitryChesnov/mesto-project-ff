@@ -24,7 +24,13 @@ export function createCard(
 
   return cardElement;
 }
-
+// Перенес функцию likeCard сюда и экспортирую в index.js. Можно было бы также
+// внести обработчик по умолчанию внутрь crateCard и заменить likeCard на дефолтный обработчик в cardElement
+// и initialCards, скрыв логику лайка в модуле card.js. Но если будут разные сценарии для лайков,
+// менять будет сложнее.
+export function likeCard(evt) {
+  evt.target.classList.toggle("card__like-button_is-active");
+}
 // @todo: Функция удаления карточки
 export function deleteCard(cardElement) {
   cardElement.remove();
