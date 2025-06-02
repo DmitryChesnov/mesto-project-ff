@@ -1,6 +1,30 @@
-import { initialCards } from "./cards";
-import { createCard, deleteCard, likeCard } from "./components/card";
+import {
+  createCard,
+  handleDeleteCard,
+  handleLikeCard,
+} from "./components/card";
 import { openPopup, closePopup } from "./components/modal";
+import { enableValidation, clearValidation } from "./components/validation";
+import {
+  getUserInfo,
+  getInitialCards,
+  updateProfile,
+  addNewCard,
+  updateAvatar,
+} from "./api";
+
+let userId;
+
+const validationConfig = {
+  formSelector: ".popup__form",
+  inputSelector: ".popup__input",
+  submitButtonSelector: ".popup__button",
+  inactiveButtonClass: "popup__button_disabled",
+  inputErrorClass: "popup__input_type_error",
+  errorClass: "popup__error_visible",
+};
+
+enableValidation(validationConfig);
 
 // @todo: DOM узлы
 const placesList = document.querySelector(".places__list");
@@ -13,6 +37,10 @@ const popups = document.querySelectorAll(".popup");
 const editPopup = document.querySelector(".popup_type_edit");
 const newCardPopup = document.querySelector(".popup_type_new-card");
 const imagePopup = document.querySelector(".popup_type_image");
+const avatarPopup = document.querySelector('.popup_type_avatar');
+const avatarForm = document.forms['update-avatar'];
+const avatarInput = avatarForm.querySelector('.popup__input_type_avatar-url');
+const avatarImage = document.querySelector('.profile__image');
 
 // Buttons
 const editButton = document.querySelector(".profile__edit-button");
@@ -44,39 +72,57 @@ popups.forEach((popup) => {
 editButton.addEventListener("click", () => {
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescription.textContent;
+  clearValidation(editForm, validationConfig);
   openPopup(editPopup);
 });
 
 editForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  profileTitle.textContent = nameInput.value;
-  profileDescription.textContent = jobInput.value;
-  closePopup(editPopup);
+  const submitButton = editForm.querySelector('.popup__button');
+  const originalText = submitButton.textContent;
+  submitButton.textContent = 'Сохранение...';
+
+  updateProfile(nameInput.value, jobInput.value)
+    .then((userData) => {
+      profileTitle.textContent = userData.name;
+      profileDescription.textContent = userData.about;
+      closePopup(editPopup);
+    })
+    .catch(err => console.log(err))
+    .finally(() => {
+      submitButton.textContent = originalText;
+    });
 });
 
-// Add new card form handling Я посмотрел, как делается, когда обработчики выносятся
-// в отдельные именованные функции и используются при навешивании слушателей.
-// Но исправить код сейчас не решился- делаю первые шаги в js и боюсь ненароком поломать код.
-// Обязательно учту это в дальнейшем.
 addButton.addEventListener("click", () => {
   newCardForm.reset();
+  clearValidation(newCardForm, validationConfig);
   openPopup(newCardPopup);
 });
 
 newCardForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  const cardData = {
-    name: cardNameInput.value,
-    link: cardUrlInput.value,
-  };
-  const cardElement = createCard(
-    cardData,
-    deleteCard,
-    likeCard,
-    openImagePopup
-  );
-  placesList.prepend(cardElement);
-  closePopup(newCardPopup);
+  const submitButton = newCardForm.querySelector('.popup__button');
+  const originalText = submitButton.textContent;
+  submitButton.textContent = 'Сохранение...';
+
+  addNewCard(cardNameInput.value, cardUrlInput.value)
+    .then((cardData) => {
+      const cardElement = createCard(
+        cardData,
+        handleDeleteCard,
+        handleLikeCard,
+        openImagePopup,
+        userId
+      );
+      placesList.prepend(cardElement);
+      closePopup(newCardPopup);
+      newCardForm.reset();
+    })
+    .catch(err => console.log(err))
+    .finally(() => {
+      submitButton.textContent = originalText;
+    });
 });
 
 function openImagePopup(cardData) {
@@ -93,14 +139,52 @@ document.querySelectorAll(".popup__close").forEach((button) => {
     closePopup(popup);
   });
 });
-console.log(initialCards);
-// Initial cards rendering
-initialCards.forEach((cardData) => {
-  const cardElement = createCard(
-    cardData,
-    deleteCard,
-    likeCard,
-    openImagePopup
-  );
-  placesList.append(cardElement);
+
+Promise.all([getUserInfo(), getInitialCards()])
+  .then(([userData, cards]) => {
+    userId = userData._id;
+
+    // Обновляем профиль данными с сервера
+    profileTitle.textContent = userData.name;
+    profileDescription.textContent = userData.about;
+    avatarImage.style.backgroundImage = `url(${userData.avatar})`;
+    // Отображаем карточки с сервера
+    cards.forEach((cardData) => {
+      const cardElement = createCard(
+        cardData,
+        handleDeleteCard,
+        handleLikeCard,
+        openImagePopup,
+        userId
+      );
+      placesList.append(cardElement);
+    });
+  })
+  .catch((err) => {
+    console.log("Ошибка при загрузке данных:", err);
+  });
+
+  // Добавить обработчик открытия попапа аватара
+avatarImage.addEventListener('click', () => {
+  avatarForm.reset();
+  clearValidation(avatarForm, validationConfig);
+  openPopup(avatarPopup);
+});
+
+// Добавить обработчик отправки формы аватара
+avatarForm.addEventListener('submit', (evt) => {
+  evt.preventDefault();
+  const submitButton = avatarForm.querySelector('.popup__button');
+  const originalText = submitButton.textContent;
+  submitButton.textContent = 'Сохранение...';
+
+  updateAvatar(avatarInput.value)
+    .then((userData) => {
+      avatarImage.style.backgroundImage = `url(${userData.avatar})`;
+      closePopup(avatarPopup);
+    })
+    .catch(err => console.log(err))
+    .finally(() => {
+      submitButton.textContent = originalText;
+    });
 });

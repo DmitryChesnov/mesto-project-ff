@@ -1,3 +1,4 @@
+import { deleteCard, likeCard, unlikeCard } from "../api.js";
 // @todo: Темплейт карточки
 const cardTemplate = document.querySelector("#card-template").content;
 // @todo: Функция создания карточки
@@ -5,7 +6,8 @@ export function createCard(
   cardData,
   deleteCallback,
   likeCallback,
-  imageCallback
+  openImageCallback,
+  userId
 ) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
   const cardImage = cardElement.querySelector(".card__image");
@@ -16,22 +18,55 @@ export function createCard(
   cardImage.src = cardData.link;
   cardImage.alt = cardData.name;
   cardTitle.textContent = cardData.name;
-  // Слушатель удаления
 
-  deleteButton.addEventListener("click", () => deleteCallback(cardElement));
-  likeButton.addEventListener("click", likeCallback);
-  cardImage.addEventListener("click", () => imageCallback(cardData));
+  if (cardData.owner && cardData.owner._id !== userId) {
+    deleteButton.style.display = "none";
+  }
+
+  // Создаем элемент для отображения количества лайков
+  const likeCountElement = document.createElement("span");
+  likeCountElement.classList.add("card__like-count");
+  likeCountElement.textContent = cardData.likes.length;
+  likeButton.after(likeCountElement);
+
+  // Проверяем, есть ли наш лайк на карточке
+  if (cardData.likes.some((like) => like._id === userId)) {
+    likeButton.classList.add("card__like-button_is-active");
+  }
+
+  // Обработчики событий
+  cardImage.addEventListener("click", () => openImageCallback(cardData));
+  deleteButton.addEventListener("click", () =>
+    deleteCallback(cardData._id, cardElement)
+  );
+  likeButton.addEventListener("click", () =>
+    likeCallback(cardData._id, likeButton, likeCountElement)
+  );
 
   return cardElement;
 }
-// Перенес функцию likeCard сюда и экспортирую в index.js. Можно было бы также
-// внести обработчик по умолчанию внутрь crateCard и заменить likeCard на дефолтный обработчик в cardElement
-// и initialCards, скрыв логику лайка в модуле card.js. Но если будут разные сценарии для лайков,
-// менять будет сложнее.
-export function likeCard(evt) {
-  evt.target.classList.toggle("card__like-button_is-active");
+
+// Функции обработчики (их нужно экспортировать)
+export function handleDeleteCard(cardId, cardElement) {
+  deleteCard(cardId)
+    .then(() => {
+      cardElement.remove();
+    })
+    .catch((err) => {
+      console.log("Ошибка при удалении карточки:", err);
+    });
 }
-// @todo: Функция удаления карточки
-export function deleteCard(cardElement) {
-  cardElement.remove();
+
+export function handleLikeCard(cardId, likeButton, likeCountElement) {
+  const isLiked = likeButton.classList.contains("card__like-button_is-active");
+  const likePromise = isLiked ? unlikeCard(cardId) : likeCard(cardId);
+
+  likePromise
+    .then((updatedCard) => {
+      likeCountElement.textContent = updatedCard.likes.length;
+      likeButton.classList.toggle("card__like-button_is-active");
+    })
+    .catch((err) => {
+      console.log("Ошибка при лайке:", err);
+    });
 }
