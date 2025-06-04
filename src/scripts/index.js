@@ -11,7 +11,7 @@ import {
   updateProfile,
   addNewCard,
   updateAvatar,
-} from "./api";
+} from "./components/api";
 
 let userId;
 
@@ -37,10 +37,10 @@ const popups = document.querySelectorAll(".popup");
 const editPopup = document.querySelector(".popup_type_edit");
 const newCardPopup = document.querySelector(".popup_type_new-card");
 const imagePopup = document.querySelector(".popup_type_image");
-const avatarPopup = document.querySelector('.popup_type_avatar');
-const avatarForm = document.forms['update-avatar'];
-const avatarInput = avatarForm.querySelector('.popup__input_type_avatar-url');
-const avatarImage = document.querySelector('.profile__image');
+const avatarPopup = document.querySelector(".popup_type_avatar");
+const avatarForm = document.forms["update-avatar"];
+const avatarInput = avatarForm.querySelector(".popup__input_type_avatar-url");
+const avatarImage = document.querySelector(".profile__image");
 
 // Buttons
 const editButton = document.querySelector(".profile__edit-button");
@@ -78,9 +78,9 @@ editButton.addEventListener("click", () => {
 
 editForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  const submitButton = editForm.querySelector('.popup__button');
+  const submitButton = evt.submitter;
   const originalText = submitButton.textContent;
-  submitButton.textContent = 'Сохранение...';
+  submitButton.textContent = "Сохранение...";
 
   updateProfile(nameInput.value, jobInput.value)
     .then((userData) => {
@@ -88,7 +88,7 @@ editForm.addEventListener("submit", (evt) => {
       profileDescription.textContent = userData.about;
       closePopup(editPopup);
     })
-    .catch(err => console.log(err))
+    .catch((err) => console.log(err))
     .finally(() => {
       submitButton.textContent = originalText;
     });
@@ -102,9 +102,9 @@ addButton.addEventListener("click", () => {
 
 newCardForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  const submitButton = newCardForm.querySelector('.popup__button');
+  const submitButton = evt.submitter;
   const originalText = submitButton.textContent;
-  submitButton.textContent = 'Сохранение...';
+  submitButton.textContent = "Сохранение...";
 
   addNewCard(cardNameInput.value, cardUrlInput.value)
     .then((cardData) => {
@@ -119,7 +119,7 @@ newCardForm.addEventListener("submit", (evt) => {
       closePopup(newCardPopup);
       newCardForm.reset();
     })
-    .catch(err => console.log(err))
+    .catch((err) => console.log(err))
     .finally(() => {
       submitButton.textContent = originalText;
     });
@@ -164,26 +164,26 @@ Promise.all([getUserInfo(), getInitialCards()])
     console.log("Ошибка при загрузке данных:", err);
   });
 
-  // Добавить обработчик открытия попапа аватара
-avatarImage.addEventListener('click', () => {
+// Добавить обработчик открытия попапа аватара
+avatarImage.addEventListener("click", () => {
   avatarForm.reset();
   clearValidation(avatarForm, validationConfig);
   openPopup(avatarPopup);
 });
 
 // Добавить обработчик отправки формы аватара
-avatarForm.addEventListener('submit', (evt) => {
+avatarForm.addEventListener("submit", (evt) => {
   evt.preventDefault();
-  const submitButton = avatarForm.querySelector('.popup__button');
+  const submitButton = evt.submitter;
   const originalText = submitButton.textContent;
-  submitButton.textContent = 'Сохранение...';
+  submitButton.textContent = "Сохранение...";
 
   updateAvatar(avatarInput.value)
     .then((userData) => {
       avatarImage.style.backgroundImage = `url(${userData.avatar})`;
       closePopup(avatarPopup);
     })
-    .catch(err => console.log(err))
+    .catch((err) => console.log(err))
     .finally(() => {
       submitButton.textContent = originalText;
     });
