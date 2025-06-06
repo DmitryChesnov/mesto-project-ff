@@ -11,38 +11,26 @@ function hideInputError(formElement, inputElement, settings) {
   errorElement.textContent = "";
   errorElement.classList.remove(settings.errorClass);
 }
-// заморочился с созданием функции получения кастомной ошибки, а то все показывало браузерные и не соответствовало макету
-function getCustomErrorMessage(inputElement) {
-  if (inputElement.validity.valueMissing) {
-    return inputElement.dataset.errorRequired || inputElement.validationMessage;
-  }
-  if (inputElement.validity.tooShort) {
-    if (inputElement.dataset.errorMinlength) {
-      const length = inputElement.value.length;
-      const ending = length === 1 ? "" : "а";
-      return inputElement.dataset.errorMinlength
-        .replace("{length}", length)
-        .replace("{ending}", ending);
-    }
-    return inputElement.validationMessage;
-  }
-  if (inputElement.validity.patternMismatch) {
-    return inputElement.dataset.errorPattern || inputElement.validationMessage;
-  }
-  if (inputElement.validity.typeMismatch && inputElement.type === "url") {
-    return inputElement.dataset.errorMessage || inputElement.validationMessage;
-  }
-  return inputElement.validationMessage;
-}
 
 function checkInputValidity(formElement, inputElement, settings) {
+  if (inputElement.validity.patternMismatch) {
+    inputElement.setCustomValidity(inputElement.dataset.errorMessage);
+  } else {
+    inputElement.setCustomValidity("");
+  }
+
   if (!inputElement.validity.valid) {
-    const errorMessage = getCustomErrorMessage(inputElement);
-    showInputError(formElement, inputElement, errorMessage, settings);
+    showInputError(
+      formElement,
+      inputElement,
+      inputElement.validationMessage,
+      settings
+    );
   } else {
     hideInputError(formElement, inputElement, settings);
   }
 }
+
 function hasInvalidInput(inputList) {
   return inputList.some((inputElement) => {
     return !inputElement.validity.valid;
